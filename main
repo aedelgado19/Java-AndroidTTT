@@ -1,0 +1,449 @@
+package com.example.a399109.androidtictactoe;
+/* author: Ally Delgado
+* 2/3/2020
+* AndroidTicTacToe is similar to GUITicTacToe but adds an AI player
+*/
+
+
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+
+public class AndroidTicTacToe extends AppCompatActivity implements View.OnClickListener {
+
+   //variable declarations
+   Button[][] grid = new Button[3][3];
+   int[][] board = new int[3][3];
+   final int BLANK = 0;
+   final int X_MOVE = 1;
+   final int O_MOVE = 2;
+   final int X_TURN = 0;
+   final int O_TURN = 1;
+   int turn = X_TURN;
+   int xwins = 0;
+   int owins = 0;
+
+
+   @Override
+   protected void onCreate(Bundle savedInstanceState) {
+       super.onCreate(savedInstanceState);
+       setContentView(R.layout.activity_android_tic_tac_toe);
+
+       //collects all buttons from activity file and put into grid
+       grid[0][0] = (Button) this.findViewById(R.id.button1); //refers to button1 in activity
+       grid[0][1] = (Button) this.findViewById(R.id.button2);
+       grid[0][2] = (Button) this.findViewById(R.id.button3);
+       grid[1][0] = (Button) this.findViewById(R.id.button4);
+       grid[1][1] = (Button) this.findViewById(R.id.button5);
+       grid[1][2] = (Button) this.findViewById(R.id.button6);
+       grid[2][0] = (Button) this.findViewById(R.id.button7);
+       grid[2][1] = (Button) this.findViewById(R.id.button8);
+       grid[2][2] = (Button) this.findViewById(R.id.button9);
+
+       //set nested for loop to set click listener for each grid slot
+       for (int x = 0; x < 3; x++){
+           for (int y = 0; y < 3; y++) {
+               grid[x][y].setOnClickListener(this);
+           }
+       }
+
+   }
+
+   @Override
+   public void onClick(View v){
+       //cast view as a temporary button
+       Button b = (Button)v;
+       int turn = X_TURN;
+       //when button is clicked, walk thru all buttons and see which one matches grid
+       for (int x = 0; x < 3; x++) {
+           for (int y = 0; y < 3; y++) {
+               if (b.equals(grid[x][y])){ //lets you know which x and y is actually clicked
+                   if (board[x][y] == BLANK) { //if it's an empty square
+
+                       b.setText("X");
+                       b.setEnabled(false); // set it so you can only play in a box once
+                       board[x][y] = X_MOVE; // play x move
+                       turn = O_TURN; //swap to O's turn
+                   }
+                       if (Win() == 1) { //x wins when checkWin returns 1
+                           Toast.makeText(this, "X wins!", Toast.LENGTH_SHORT).show();
+                           clearBoard();
+                           xwins++;
+                           b.setEnabled(false);
+                       } else if (Win() == 2) {
+                           Toast.makeText(this, "O wins!", Toast.LENGTH_SHORT).show();
+                           clearBoard();
+                           owins++;
+                           b.setEnabled(false);
+                       } else if (CheckTie() == true) {
+                           Toast.makeText(this, "Tie!", Toast.LENGTH_SHORT).show();
+                           b.setEnabled(false);
+                           clearBoard();
+                       }
+
+                       if (turn == O_TURN){
+                           aiMove();
+                       }
+                       if (Win() == 1) { //x wins when checkWin returns 1
+                           Toast.makeText(this, "X wins!", Toast.LENGTH_SHORT).show();
+                           clearBoard();
+                           xwins++;
+                           b.setEnabled(false);
+                       }
+                       else if (Win() == 2) {
+                           Toast.makeText(this, "O wins!", Toast.LENGTH_SHORT).show();
+                           clearBoard();
+                           owins++;
+                           b.setEnabled(false);
+                       }
+                       else if (CheckTie() == true) {
+                           Toast.makeText(this, "Tie!", Toast.LENGTH_SHORT).show();
+                           b.setEnabled(false);
+                           clearBoard();
+                       }
+
+
+                       //check if there was a win
+                       //if board has won, clear board, set enabled back to true
+
+                     /* if (Win() == 1) { //x wins when checkWin returns 1
+                           Toast.makeText(this, "X wins!", Toast.LENGTH_SHORT).show();
+                           clearBoard();
+                           xwins++;
+                           b.setEnabled(false);
+                       }
+                       else if (Win() == 2) {
+                           Toast.makeText(this, "O wins!", Toast.LENGTH_SHORT).show();
+                           clearBoard();
+                           owins++;
+                           b.setEnabled(false);
+                       }
+                       else if (CheckTie() == true) {
+                           Toast.makeText(this, "Tie!", Toast.LENGTH_SHORT).show();
+                           b.setEnabled(false);
+                           clearBoard();
+                       }*/
+                   }
+           }
+       }
+
+   }
+
+   public void aiMove() {
+       //try to win
+       if(checkSingleBlank(O_MOVE)){
+           return;
+       }
+
+       //try to block
+       if(checkSingleBlank(X_MOVE)){
+           return;
+       }
+       //if no move is made, play randomly
+       ArrayList<Integer> list  = new ArrayList<Integer>(); //create list to hold random movement
+       for(int x = 0; x < 3; x++){
+           for(int y = 0; y < 3; y++){
+               if(board[x][y] == BLANK){
+                   list.add(x*10+y);
+               }
+           }
+       }
+
+           int choice = (int) (Math.random() * list.size()); // create random int for the move
+           //take the random int for x val, y val is whatever remains (using mod)
+           for (int x = 0; x < 3; x++) {
+               for (int y = 0; y < 3; y++) {
+                   if (board[x][y] == BLANK) {
+                       board[list.get(choice) / 10][list.get(choice) % 10] = O_MOVE;
+                       grid[list.get(choice) / 10][list.get(choice) % 10].setText("O"); //update board
+                       grid[list.get(choice) / 10][list.get(choice) % 10].setEnabled(false);//disable button
+
+                       //print out a toast saying you made a random move
+                       Toast.makeText(this, "Played Randomly", Toast.LENGTH_SHORT).show();
+                   }
+
+               }
+           }
+
+   }
+
+   public boolean checkSingleBlank(int player){
+       //initialize variables to 0
+       int oCount = 0;
+       int blankCount = 0;
+       int blankX = 0;
+       int blankY = 0;
+       for(int x = 0; x < 3; x++) { //check columns win
+           oCount = 0;
+           blankCount = 0;
+           blankX = 0;
+           blankY = 0;
+           for (int y = 0; y < 3; y++) {
+               //check blank spots
+               if (board[x][y] == BLANK) {
+                   blankCount++;
+                   blankX = x;
+                   blankY = y;
+               }
+
+               //check for o moves
+               if (board[x][y] == player) {
+                   oCount++;
+               }
+           }
+           //if you have a winning move (2 o moves and a blank) make it
+           if (oCount == 2 && blankCount == 1) {
+
+               for (x = 0; x < 3; x++) {
+                   for (int y = 0; y < 3; y++) {
+                       if (board[x][y] == BLANK) {
+                           board[blankX][blankY] = O_MOVE;
+                           grid[blankX][blankY].setText("O"); //update board
+                           grid[blankX][blankY].setEnabled(false);//disable button
+                           Toast.makeText(this, "winning move found in column", Toast.LENGTH_SHORT).show();
+                           return true;
+                       }
+                   }
+               }
+           }
+       }
+           for(int y = 0; y < 3; y++){ //check row win now
+               oCount = 0;
+               blankCount = 0;
+               blankX = 0;
+               blankY = 0;
+               for(int x = 0; x < 3; x++){
+                   //check blank spots
+                   if(board[x][y] == BLANK){
+                       blankCount++;
+                       blankX = x;
+                       blankY = y;
+                   }
+
+                   //check for o moves
+                   if(board[x][y] == player){
+                       oCount++;
+                   }
+               }
+               //if you have a winning move (2 o moves and a blank) make it
+               if (oCount == 2 && blankCount == 1) {
+
+                   for (int x = 0; x < 3; x++) {
+                       for (y = 0; y < 3; y++) {
+                           if (board[x][y] == BLANK) {
+                               board[blankX][blankY] = O_MOVE;
+                               grid[blankX][blankY].setText("O"); //update board
+                               grid[blankX][blankY].setEnabled(false);//disable button
+                               Toast.makeText(this, "winning move found in row", Toast.LENGTH_SHORT).show();
+                               return true;
+                           }
+                       }
+                   }
+               }
+       }
+
+       //check top left to bottom right diagonal
+       oCount = 0;
+       blankCount = 0;
+       blankX = 0;
+       blankY = 0;
+       //check blank spots
+       if(board[0][0] == BLANK){
+           blankCount++;
+           blankX = 0;
+           blankY = 0;
+       }
+       //check for o moves
+       if(board[0][0] == player){
+           oCount++;
+       }
+       if(board[1][1] == BLANK){
+           blankCount++;
+           blankX = 1;
+           blankY = 1;
+       }
+       //check for o moves
+       if(board[1][1] == player){
+           oCount++;
+       }
+       if(board[2][2] == BLANK){
+           blankCount++;
+           blankX = 2;
+           blankY = 2;
+       }
+       //check for o moves
+       if(board[2][2] == player){
+           oCount++;
+       }
+       if (oCount == 2 && blankCount == 1) {
+
+
+           board[blankX][blankY] = O_MOVE;
+           grid[blankX][blankY].setText("O"); //update board
+           grid[blankX][blankY].setEnabled(false);//disable button
+           Toast.makeText(this, "winning move found top left to bottom right diagonal", Toast.LENGTH_SHORT).show();
+           return true;
+
+
+       }
+
+       //top right to bottom left diagonal
+       oCount = 0;
+       blankCount = 0;
+       blankX = 0;
+       blankY = 0;
+       //check blank spots
+       if(board[2][0] == BLANK){
+           blankCount++;
+           blankX = 2;
+           blankY = 0;
+       }
+       //check for o moves
+       if(board[2][0] == player){
+           oCount++;
+       }
+       if(board[1][1] == BLANK){
+           blankCount++;
+           blankX = 1;
+           blankY = 1;
+       }
+       //check for o moves
+       if(board[1][1] == player){
+           oCount++;
+       }
+       if(board[0][2] == BLANK){
+           blankCount++;
+           blankX = 0;
+           blankY = 2;
+       }
+       //check for o moves
+       if(board[0][2] == player){
+           oCount++;
+       }
+       if (oCount == 2 && blankCount == 1) {
+
+           /*for (int x = 0; x < 3; x++) {
+               for (int y = 0; y < 3; y++) {
+                   if (board[x][y] == BLANK) {*/
+                       board[blankX][blankY] = O_MOVE;
+                       grid[blankX][blankY].setText("O"); //update board
+                       grid[blankX][blankY].setEnabled(false);//disable button
+                       Toast.makeText(this, "winning move found top right to bottom left diagonal", Toast.LENGTH_SHORT).show();
+                       return true;
+                  /* }
+               }
+           }*/
+       }
+
+       return false;
+   }
+
+   public int Win(){
+       int i = 0;
+       //x wins
+       if (board[0][0] == X_MOVE && board[0][1] == X_MOVE && board[0][2] == X_MOVE) {
+           i = 1;
+       }
+       if (board[0][0] == X_MOVE && board[1][1] == X_MOVE && board[2][2] == X_MOVE) {
+           i = 1;
+       }
+       if (board[0][2] == X_MOVE && board[1][1] == X_MOVE && board[2][0] == X_MOVE) {
+           i = 1;
+       }
+       if (board[0][2] == X_MOVE && board[1][2] == X_MOVE && board[2][2] == X_MOVE) {
+           i = 1;
+       }
+       if (board[1][0] == X_MOVE && board[1][1] == X_MOVE && board[1][2] == X_MOVE) {
+           i = 1;
+       }
+       if (board[2][0] == X_MOVE && board[2][1] == X_MOVE && board[2][2] == X_MOVE) {
+           i = 1;
+       }
+       if (board[0][0] == X_MOVE && board[1][0] == X_MOVE && board[2][0] == X_MOVE) {
+           i = 1;
+       }
+       if (board[0][1] == X_MOVE && board[1][1] == X_MOVE && board[2][1] == X_MOVE) {
+           i = 1;
+
+           //o wins
+       }
+       if (board[0][0] == O_MOVE && board[0][1] == O_MOVE && board[0][2] == O_MOVE) {
+           i = 2;
+       }
+       if (board[0][0] == O_MOVE && board[1][1] == O_MOVE && board[2][2] == O_MOVE) {
+           i = 2;
+       }
+       if (board[0][2] == O_MOVE && board[1][1] == O_MOVE && board[2][0] == O_MOVE) {
+           i = 2;
+       }
+       if (board[0][2] == O_MOVE && board[1][2] == O_MOVE && board[2][2] == O_MOVE) {
+           i = 2;
+       }
+       if (board[1][0] == O_MOVE && board[1][1] == O_MOVE && board[1][2] == O_MOVE) {
+           i = 2;
+       }
+       if (board[2][0] == O_MOVE && board[2][1] == O_MOVE && board[2][2] == O_MOVE) {
+           i = 2;
+       }
+       if (board[0][0] == O_MOVE && board[1][0] == O_MOVE && board[2][0] == O_MOVE) {
+           i = 2;
+       }
+       if (board[0][1] == O_MOVE && board[1][1] == O_MOVE && board[2][1] == O_MOVE) {
+           i = 2;
+       }
+
+
+       else if (i != 1 && i != 2){
+          i = 0;
+       }
+
+   return i;
+   }
+
+
+
+// check to see if board is filled
+   public boolean CheckBoardFill() {
+       if(
+                       board[0][0] != BLANK &&
+                       board[1][0] != BLANK &&
+                       board[2][0] != BLANK &&
+                       board[0][1] != BLANK &&
+                       board[0][2] != BLANK &&
+                       board[1][1] != BLANK &&
+                       board[1][2] != BLANK &&
+                       board[2][1] != BLANK &&
+                       board[2][2] != BLANK) {
+           return true;
+       }
+       return false;
+   }
+
+   public boolean CheckTie() { // if there's a tie return true
+       //tie occurs when board is filled and there is no win
+       if (CheckBoardFill()==true && (Win() == 0)) {
+           return true;
+       }
+       return false;
+   }
+
+//set board slots to blank
+   public void clearBoard() {
+       for (int a = 0; a < 3; a++) {
+           for (int b = 0; b < 3; b++) {
+               board[a][b] = BLANK;
+               grid[a][b].setText(" ");
+               grid[a][b].setEnabled(true);
+           }
+       }
+
+       //turn = X_TURN;
+   }
+
+}
+
+
